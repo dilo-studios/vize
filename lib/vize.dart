@@ -5,4 +5,5 @@ export 'src/services/vize.dart';
 export 'src/utils/vize_extensions.dart';
 export 'src/utils/vize_helpers.dart';
 export 'src/widgets/vize_builder.dart';
+export 'src/widgets/vize_layout.dart';
 export 'src/widgets/vize_wrapper.dart';

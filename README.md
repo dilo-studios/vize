@@ -27,7 +27,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  vize: ^1.0.0
+  vize: ^1.0.1
 ```
 
 Then run:
@@ -38,9 +38,10 @@ flutter pub get
 
 ## Quick Start
 
-### 1. Initialize Vize
+### 1a. Initialize Vize
 
 Initialize Vize once in your app, typically in your root widget:
+The best way to initialize Vize is inside the `builder` of your `MaterialApp`. This ensures Vize stays updated whenever the screen size changes.
 
 ```dart
 import 'package:flutter/material.dart';
@@ -53,14 +54,36 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize Vize
-    Vize.init(context);
 
     return const MaterialApp(
-      home: HomePage(),
+    builder: (context, child) {
+    // Initialize Vize
+    Vize.init(context, figmaWidth: 390, figmaHeight: 844);
+    return child!;
+    },
+    home: const HomePage(),
     );
   }
 }
+```
+
+### 1b. Use Reactive Layouts
+
+Wrap your screens in `VizeLayout` to make them automatically responsive to window resizing (Desktop/Web) or orientation changes.
+
+```dart
+VizeLayout(
+  builder: (context, info) {
+    return Scaffold(
+      body: Container(
+        width: 100.w,   // 100% of screen width
+        padding: 20.pa, // Scaled 20px padding
+        child: Text("Device: ${info.device}"),
+      ),
+    );
+  },
+)
+
 ```
 
 ### 2. Use Vize Helpers
@@ -303,8 +326,8 @@ VizeLayout(
       children: [
         Text('Device: ${info.device}'),
         Text('Orientation: ${info.orientation}'),
-        Text('Screen: ${info.vizeScreenSize}'),
-        Text('Widget: ${info.vizeWidgetSize}'),
+        Text('Screen: ${info.vizeScreen}'),
+        Text('Widget: ${info.vizeWidget}'),
       ],
     );
   },
@@ -339,19 +362,21 @@ Vize.init(
 
 ### Core Methods
 
-| Method               | Description        | Example                   |
-| -------------------- | ------------------ | ------------------------- |
-| `Vize.init(context)` | Initialize Vize    | `Vize.init(context)`      |
-| `w(percent)`         | Width percentage   | `w(50)` → 50% width       |
-| `h(percent)`         | Height percentage  | `h(30)` → 30% height      |
-| `ts(size)`           | Scale text size    | `ts(16)` → scaled 16px    |
-| `r(value)`           | Scale radius       | `r(12)` → scaled 12px     |
-| `pa(value)`          | Padding all sides  | `pa(16)` → scaled padding |
-| `ps({h, v})`         | Symmetric padding  | `ps(h: 20, v: 10)`        |
-| `po({l, t, r, b})`   | Individual padding | `po(l: 10, t: 20)`        |
-| `ws(percent)`        | Width spacing      | `ws(5)` → 5% width        |
-| `hs(percent)`        | Height spacing     | `hs(2)` → 2% height       |
-| `sp([step])`         | Standard spacing   | `sp(2)` → 16px scaled     |
+| Method               | Description        | Example                    |
+| -------------------- | ------------------ | -------------------------- |
+| `Vize.init(context)` | Initialize Vize    | `Vize.init(context)`       |
+| `VizeLayout`         | Reactive builder   | `VizeLayout(builder:...)`  |
+| `Vize.getInfo()`     | Get constraints    | `Vize.getInfo(context,..)` |
+| `w(percent)`         | Width percentage   | `w(50)` → 50% width        |
+| `h(percent)`         | Height percentage  | `h(30)` → 30% height       |
+| `ts(size)`           | Scale text size    | `ts(16)` → scaled 16px     |
+| `r(value)`           | Scale radius       | `r(12)` → scaled 12px      |
+| `pa(value)`          | Padding all sides  | `pa(16)` → scaled padding  |
+| `ps({h, v})`         | Symmetric padding  | `ps(h: 20, v: 10)`         |
+| `po({l, t, r, b})`   | Individual padding | `po(l: 10, t: 20)`         |
+| `ws(percent)`        | Width spacing      | `ws(5)` → 5% width         |
+| `hs(percent)`        | Height spacing     | `hs(2)` → 2% height        |
+| `sp([step])`         | Standard spacing   | `sp(2)` → 16px scaled      |
 
 ### Vize.I Methods
 

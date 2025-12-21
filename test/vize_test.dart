@@ -128,7 +128,7 @@ void main() {
                 height: 200,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final info = Vize.info(context, constraints);
+                    final info = Vize.getInfo(context, constraints);
 
                     expect(info.vizeWidget.width, 200.0);
                     expect(info.vizeScreen.width, 800.0);

@@ -18,3 +18,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and
 - Widgets: `VizeBuilder`, `VizeLayout`
 - Customizable breakpoints and Figma dimensions
 - Full documentation and examples
+
+## 1.0.1
+
+### Added
+
+- **VizeLayout Widget**: A new reactive wrapper that automatically rebuilds UI and refreshes `Vize` logic when screen constraints or orientation change.
+- **Vize.generateInfo**: Added a dedicated static method for capturing local widget constraints without colliding with global state.
+
+### Fixed
+
+- **Reactivity Issue**: Fixed a bug where scaling extensions (`.w`, `.h`, etc.) wouldn't update on window resize or orientation change without a hot reload.
+- **Naming Collision**: Resolved a conflict between the `Vize.info` static method and the `Vize.I.info` getter.
+- **Type Safety**: Fixed a type mismatch in the `VizeInfo` model assignment.
+
+### Improved
+
+- **Linting**: Addressed internal field warnings for better code health.
