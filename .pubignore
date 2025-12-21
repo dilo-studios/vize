@@ -1,4 +1,5 @@
 # Exclude local maintenance scripts from the pub.dev package
 
 check.ps1
+check.sh
 .github/

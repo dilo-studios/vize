@@ -525,6 +525,23 @@ class HomePage extends StatelessWidget {
 
 Contributions are very welcome! We'd love to see new features, bug fixes, documentation improvements, or anything that makes Vize better.
 
+### Local Development & Verification
+
+To ensure consistency, we've included a "pre-flight" script. Before pushing your changes or opening a PR, please run the checks to verify formatting, analysis, and tests:
+
+**On Windows (PowerShell):**
+
+```powershell
+./check.ps1
+```
+
+**On Linux/macOS:**
+
+```bash
+chmod +x check.sh # Only needed the first time
+./check.sh
+```
+
 ### How to Contribute
 
 1. **Fork the repository**
