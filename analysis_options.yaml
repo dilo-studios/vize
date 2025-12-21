@@ -1,0 +1,35 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - "**/*.g.dart" # Cleaner syntax for excluding generated files
+    - example/**
+
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    # Style & readability
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    avoid_print: true
+    unnecessary_lambdas: true
+    use_key_in_widget_constructors: true
+    directives_ordering: true # Keeps imports clean
+
+    # Safety & correctness
+    avoid_dynamic_calls: true
+    avoid_empty_else: true
+    avoid_returning_null_for_void: true
+    cancel_subscriptions: true
+
+    public_member_api_docs: true
+    sort_pub_dependencies: true
+
+    # Performance
+    avoid_redundant_argument_values: true
+    avoid_unnecessary_containers: true
