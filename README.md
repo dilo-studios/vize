@@ -2,7 +2,7 @@
 
 Vize is a modern, developer-friendly Flutter package for effortless responsive UIs that match your Figma designs perfectly.
 
-It uses percentage-based sizing, smart scaling for padding and typography, adaptive grids, breakpoint overrides, handy extensions, and responsive builders — making it smooth across mobile, tablet, and desktop.
+It uses percentage-based sizing, smart scaling for padding and typography, adaptive grids, breakpoint overrides, handy extensions, and responsive builders making it smooth across mobile, tablet, and desktop.
 
 Perfect for clean, production-ready apps and scalable design systems. No more responsiveness headaches!
 
@@ -13,13 +13,13 @@ Perfect for clean, production-ready apps and scalable design systems. No more re
 
 ## Features
 
-- **Percentage-Based Layouts** — Intuitive width/height sizing
-- **Figma Scaling** — Direct scaling from your designs
-- **Device Detection** — Automatic mobile, tablet, desktop detection
-- **Orientation Support** — Portrait and landscape handling
-- **Elegant Source** — Clean, concise syntax with extensions
-- **Lightweight** — Minimal overhead, maximum performance
-- **Flexible** — Customizable breakpoints and scaling
+- **Percentage-Based Layouts:** Intuitive width/height sizing
+- **Figma Scaling:** Direct scaling from your designs
+- **Device Detection:** Automatic mobile, tablet, desktop detection
+- **Orientation Support:** Portrait and landscape handling
+- **Elegant Source:** Clean, concise syntax with extensions
+- **Lightweight:** Minimal overhead, maximum performance
+- **Flexible:** Customizable breakpoints and scaling
 
 ## Installation
 
