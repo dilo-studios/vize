@@ -47,3 +47,15 @@ int adaptiveColumns({int mobile = 2, int tablet = 4, int desktop = 6}) {
   if (isTablet) return tablet;
   return mobile;
 }
+
+/// Returns a width value scaled based on Figma design dimensions.
+double fw(double value) => Vize.I.sw(value);
+
+/// Returns a height value scaled based on Figma design dimensions.
+double fh(double value) => Vize.I.sh(value);
+
+/// Returns a [SizedBox] with a width scaled based on Figma dimensions.
+SizedBox fws(double value) => SizedBox(width: fw(value));
+
+/// Returns a [SizedBox] with a height scaled based on Figma dimensions.
+SizedBox fhs(double value) => SizedBox(height: fh(value));
