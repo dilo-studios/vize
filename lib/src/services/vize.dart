@@ -30,8 +30,14 @@ class Vize {
   final VizeBreakpoints breakpoints;
 
   /// Internal storage for the [VizeInfo] model.
-  // ignore: prefer_final_fields
-  late VizeInfo _info;
+  final VizeInfo _info;
+
+  /// A multiplier applied on top of the responsive text scale.
+  ///
+  /// Defaults to [1.0] (no adjustment). Pass a value from your font-size
+  /// preference (e.g. 0.85 / 1.0 / 1.15) and every [ts] call across the
+  /// entire app will scale accordingly — no extra [MediaQuery] wrapper needed.
+  final double textScalar;
 
   Vize._({
     required this.w,
@@ -41,17 +47,19 @@ class Vize {
     required this.figmaH,
     required this.breakpoints,
     required VizeInfo info,
+    required this.textScalar,
   }) : _info = info;
 
   /// Initializes the [Vize] singleton with screen and design dimensions.
   ///
-  /// Usually called within the `builder` of [MaterialApp] or the `build`
-  /// method of a root widget.
+  /// Call once inside [MaterialApp.builder] so it re-initialises on every
+  /// rebuild, picking up the latest [textScalar] from your font-size provider.
   static void init(
     BuildContext context, {
     double? figmaWidth,
     double? figmaHeight,
     VizeBreakpoints? breakpoints,
+    double textScalar = 1.0,
   }) {
     final mq = MediaQuery.of(context);
     final currentBreakpoints = breakpoints ?? const VizeBreakpoints();
@@ -74,6 +82,7 @@ class Vize {
       figmaW: figmaWidth ?? 390,
       figmaH: figmaHeight ?? 844,
       breakpoints: currentBreakpoints,
+      textScalar: textScalar,
       info: VizeInfo(
         orientation: mq.orientation,
         device: currentDevice,
@@ -114,10 +123,12 @@ class Vize {
   /// Scales a value based on the design height provided in Figma.
   double sh(double value) => h * (value / figmaH);
 
-  /// Returns a scaled text size with a safety clamp to prevent extreme scaling.
+  /// Returns a responsive text size clamped to a safe range, then multiplied
+  /// by [textScalar] to honour the user's font-size preference.
   double ts(double size) {
     final scaled = size * ((w + h) / 2000) * 1.05;
-    return scaled.clamp(size * 0.92, size * 1.2);
+    final clamped = scaled.clamp(size * 0.92, size * 1.2);
+    return clamped * textScalar;
   }
 
   /// Returns a scaled radius value with a safety clamp.

@@ -4,6 +4,12 @@ All notable changes to the **Vize** package are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-03-24
+
+### Added
+
+- **`textScalar` parameter on `Vize.init`**: A `double` multiplier (default `1.0`) applied on top of the responsive text scale returned by `ts()`. Pass a user font-size preference (e.g. `0.85`, `1.0`, `1.15`) to scale all text app-wide without an extra `MediaQuery` wrapper.
+
 ## [1.0.2] - 2025-12-31
 
 ### Added

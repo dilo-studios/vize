@@ -2,10 +2,7 @@
 
 Vize is a modern, developer-friendly Flutter package for effortless responsive UIs that match your Figma designs perfectly.
 
-It offers **two powerful approaches**:
-
-- **Percentage-based scaling** for flexible responsive layouts
-- **Figma-based scaling** for pixel-perfect design implementation
+It uses percentage-based sizing, smart scaling for padding and typography, adaptive grids, breakpoint overrides, handy extensions, and responsive builders, making it smooth across mobile, tablet and desktop views.
 
 Perfect for clean, production-ready apps and scalable design systems. No more responsiveness headaches!
 
@@ -16,17 +13,14 @@ Perfect for clean, production-ready apps and scalable design systems. No more re
 
 ## Features
 
-## Features
-
-- **Dual Scaling Approaches:**
-  - **Percentage-Based Layouts:** Flexible width/height sizing for responsive designs
-  - **Figma-Based Scaling:** Direct pixel-perfect scaling from your Figma designs
+- **Percentage-Based Layouts:** Intuitive width/height sizing
+- **Figma Scaling:** Direct scaling from your designs
 - **Device Detection:** Automatic mobile, tablet, desktop detection
 - **Orientation Support:** Portrait and landscape handling
-- **Clean Syntax:** Elegant extensions for both approaches
-- **Backward Compatible:** All existing code continues to work
+- **Elegant Source:** Clean, concise syntax with extensions
 - **Lightweight:** Minimal overhead, maximum performance
 - **Flexible:** Customizable breakpoints and scaling
+- **User Font Scaling:** App-wide text size preference via `textScalar`
 
 ## Installation
 
@@ -34,7 +28,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  vize: ^1.0.2
+  vize: ^1.0.3
 ```
 
 Then run:
@@ -45,10 +39,9 @@ flutter pub get
 
 ## Quick Start
 
-### 1a. Initialize Vize
+### 1. Initialize Vize
 
 Initialize Vize once in your app, typically in your root widget:
-The best way to initialize Vize is inside the `builder` of your `MaterialApp`. This ensures Vize stays updated whenever the screen size changes.
 
 ```dart
 import 'package:flutter/material.dart';
@@ -61,79 +54,51 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Initialize Vize
+    Vize.init(context);
 
     return const MaterialApp(
-    builder: (context, child) {
-    // Initialize Vize
-    Vize.init(context, figmaWidth: 390, figmaHeight: 844);
-    return child!;
-    },
-    home: const HomePage(),
+      home: HomePage(),
     );
   }
 }
 ```
 
-### 2. Choose Your Approach
+### 2. Use Vize Helpers
 
-#### Option A: Percentage-Based (Responsive Layouts)
-
-Perfect for flexible designs that adapt to any screen:
+Now you can use Vize's responsive helpers throughout your app:
 
 ```dart
 Container(
-  width: 50.w,    // 50% of screen width
-  height: 30.h,   // 30% of screen height
-  padding: 16.pa, // Percentage-based padding
-  child: Text('Responsive Container'),
+  width: w(50),      // 50% of screen width
+  height: h(30),     // 30% of screen height
+  padding: pa(16),   // Scaled 16px padding
+  child: Text(
+    'Hello Vize!',
+    style: const TextStyle(fontSize: ts(18)), // Scaled 18px text
+  ),
 )
 ```
 
-#### Option B: Figma-Based (Pixel-Perfect)
+### 3. Use Extensions (Optional)
 
-Perfect for implementing exact Figma designs:
+For even cleaner code, use Vize's number extensions:
 
 ```dart
 Container(
-  width: 375.fw,  // 375px scaled from Figma width
-  height: 40.fh,  // 40px scaled from Figma height
-  padding: 16.pa, // Figma-based padding
-  child: Text('Figma Container'),
-)
-```
-
-### 3. Use Reactive Layouts
-
-Wrap your screens in `VizeLayout` for automatic responsiveness:
-
-```dart
-VizeLayout(
-  builder: (context, info) {
-    return Scaffold(
-      body: Container(
-        width: 100.w,   // 100% of screen width (percentage-based)
-        padding: 20.pa, // Figma-based padding
-        child: Text("Device: ${info.device}"),
-      ),
-    );
-  },
+  width: 50.w,       // 50% of screen width
+  height: 30.h,      // 30% of screen height
+  padding: 16.pa,    // Scaled 16px padding
+  child: Text(
+    'Hello Vize!',
+    style: const TextStyle(fontSize: 18.ts), // Scaled 18px text
+  ),
 )
 ```
 
 ## Usage Examples
 
-### When to Use Each Approach
-
-| Use Case               | Recommended Approach | Example                          |
-| ---------------------- | -------------------- | -------------------------------- |
-| Full-screen containers | **Percentage-based** | `width: 100.w`, `height: 50.h`   |
-| Figma design elements  | **Figma-based**      | `width: 375.fw`, `height: 40.fh` |
-| Responsive spacing     | **Percentage-based** | `5.hs`, `10.ws`                  |
-| Exact Figma spacing    | **Figma-based**      | `40.fhs`, `100.fws`              |
-| Adaptive layouts       | **Percentage-based** | `w(80)`, `h(25)`                 |
-| Pixel-perfect UI       | **Figma-based**      | `fw(200)`, `fh(100)`             |
-
-### Percentage-Based Examples
+### Percentage-Based Layouts
 
 Perfect for flexible, responsive designs:
 
@@ -141,7 +106,7 @@ Perfect for flexible, responsive designs:
 Column(
   children: [
     Container(
-      width: w(100),  // Full width (100%)
+      width: w(100),  // Full width
       height: h(25),  // 25% of screen height
       color: Colors.blue,
     ),
@@ -155,46 +120,28 @@ Column(
 )
 ```
 
-### Figma-Based Examples
+### Figma Scaling
 
-Implement exact designs from Figma:
+Scale your designs directly from Figma:
 
 ```dart
-// Using helper functions
+// Using Vize.I
 Container(
-  width: fw(375),     // 375px scaled from Figma
-  height: fh(40),     // 40px scaled from Figma
-  padding: pa(16),   // 16px scaled padding
+  width: Vize.I.sw(200),   // Scale 200px from Figma
+  height: Vize.I.sh(100),  // Scale 100px from Figma
+  padding: Vize.I.pa(16),  // Scale 16px padding
   decoration: BoxDecoration(
-    borderRadius: BorderRadius.circular(r(12)), // Always uses Figma scaling
+    borderRadius: BorderRadius.circular(Vize.I.r(12)), // Scale 12px radius
   ),
 )
 
-// Or with extensions (even cleaner!)
+// Or with extensions
 Container(
-  width: 375.fw,
-  height: 40.fh,
+  width: 200.fws,
+  height: 100.fhs,
   padding: 16.pa,
   decoration: BoxDecoration(
-    borderRadius: BorderRadius.circular(12.r), // .r always uses Figma scaling
-  ),
-)
-```
-
-### Mixed Approach
-
-Combine both for the best results:
-
-```dart
-Container(
-  width: w(90),      // 90% width (responsive)
-  height: 200.fh,    // 200px from Figma (fixed ratio)
-  child: Column(
-    children: [
-      16.fhs,        // Fixed 16px spacing from Figma
-      Text('Mixed Layout', style: TextStyle(fontSize: 16.ts)),
-      2.hs,          // 2% responsive spacing
-    ],
+    borderRadius: BorderRadius.circular(12.r),
   ),
 )
 ```
@@ -231,16 +178,17 @@ Widget build(BuildContext context) {
 Multiple ways to add responsive padding:
 
 ```dart
-// Vize-based padding
-Container(padding: pa(16))    // padding on all sides
-Container(padding: 16.pa)     // Same with extension
+// All sides
+Container(padding: pa(16))
 
-// Symmetric padding
-Container(padding: ps(h: 20, v: 10))  // Percentage-based
-Container(padding: Vize.I.ps(h: 20, v: 10))  // Figma-based
+// Symmetric
+Container(padding: ps(h: 20, v: 10))
 
 // Individual sides
-Container(padding: po(l: 10, t: 20, r: 10, b: 20))  // Percentage-based
+Container(padding: po(l: 10, t: 20, r: 10, b: 20))
+
+// With extensions
+Container(padding: 16.pa)
 ```
 
 ### Spacing
@@ -248,39 +196,38 @@ Container(padding: po(l: 10, t: 20, r: 10, b: 20))  // Percentage-based
 Easy spacing between widgets:
 
 ```dart
-// Percentage-based spacing
 Column(
   children: [
     const Text('Item 1'),
     hs(2),  // 2% height spacing
-    2.hs,   // Same with extension
     const Text('Item 2'),
+    hs(3),  // 3% height spacing
+    const Text('Item 3'),
   ],
 )
 
-// Figma-based spacing
-Column(
+Row(
   children: [
-    const Text('Item 1'),
-    fhs(40),  // 40px spacing from Figma
-    40.fhs,   // Same with extension
-    const Text('Item 2'),
+    const Text('A'),
+    ws(5),  // 5% width spacing
+    const Text('B'),
   ],
 )
 ```
 
 ### Standard Spacing (8px Grid)
 
-Use the `sp()` helper for standard spacing (always Figma-based):
+Use the `sp()` helper for standard spacing:
 
 ```dart
 Column(
   children: [
     const Text('Item 1'),
-    SizedBox(height: sp()),    // 8px scaled from Figma
+    SizedBox(height: sp()),    // 8px scaled
     const Text('Item 2'),
-    SizedBox(height: sp(2)),   // 16px scaled from Figma
+    SizedBox(height: sp(2)),   // 16px scaled
     const Text('Item 3'),
+    SizedBox(height: sp(3)),   // 24px scaled
   ],
 )
 ```
@@ -297,7 +244,7 @@ GridView.builder(
       tablet: 4,
       desktop: 6,
     ),
-    crossAxisSpacing: sp(2),   // 16px scaled spacing
+    crossAxisSpacing: sp(2),
     mainAxisSpacing: sp(2),
   ),
   itemBuilder: (context, index) => const Card(child: Text('Item')),
@@ -322,94 +269,143 @@ final columns = adaptiveValue(
 );
 ```
 
-### Helper Functions
+### Device Detection
 
-#### Percentage-Based Helpers
-
-| Function           | Description        | Example                        |
-| ------------------ | ------------------ | ------------------------------ |
-| `w(percent)`       | Width percentage   | `w(50)` → 50% of screen width  |
-| `h(percent)`       | Height percentage  | `h(25)` → 25% of screen height |
-| `ws(percent)`      | Width spacing      | `ws(5)` → SizedBox(width: 5%)  |
-| `hs(percent)`      | Height spacing     | `hs(2)` → SizedBox(height: 2%) |
-| `ps({h, v})`       | Symmetric padding  | `ps(h: 20, v: 10)`             |
-| `po({l, t, r, b})` | Individual padding | `po(l: 10, t: 20)`             |
-
-#### Figma-Based Helpers
-
-| Function     | Description          | Example                                    |
-| ------------ | -------------------- | ------------------------------------------ |
-| `fw(value)`  | Figma-scaled width   | `fw(375)` → 375px scaled                   |
-| `fh(value)`  | Figma-scaled height  | `fh(40)` → 40px scaled                     |
-| `fws(value)` | Figma width spacing  | `fws(100)` → SizedBox(width: 100px scaled) |
-| `fhs(value)` | Figma height spacing | `fhs(40)` → SizedBox(height: 40px scaled)  |
-| `sp([step])` | Standard spacing     | `sp(2)` → 16px scaled                      |
-
-#### Shared Helpers
-
-| Function            | Description      | Example                      |
-| ------------------- | ---------------- | ---------------------------- |
-| `ts(value)`         | Scale text size  | `ts(16)` → scaled 16px       |
-| `r(value)`          | Scale radius     | `r(12)` → scaled 12px        |
-| `isMobile`          | Check if mobile  | `if (isMobile) ...`          |
-| `isTablet`          | Check if tablet  | `if (isTablet) ...`          |
-| `isDesktop`         | Check if desktop | `if (isDesktop) ...`         |
-| `adaptiveColumns()` | Responsive grid  | `adaptiveColumns(mobile: 2)` |
-
-### Extensions
-
-#### Percentage-Based Extensions
+Check device type anywhere in your code:
 
 ```dart
-50.w        // 50% of screen width
-30.h        // 30% of screen height
-5.ws        // SizedBox(width: 5%)
-2.hs        // SizedBox(height: 2%)
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(
+        isMobile ? 'Mobile' : isTablet ? 'Tablet' : 'Desktop'
+      ),
+    ),
+    body: Column(
+      children: [
+        if (isMobile) const MobileWidget(),
+        if (isTablet) const TabletWidget(),
+        if (isDesktop) const DesktopWidget(),
+      ],
+    ),
+  );
+}
 ```
 
-#### Figma-Based Extensions
+### Using VizeLayout
+
+Get screen info with constraints:
 
 ```dart
-375.fw      // 375px scaled from Figma width
-40.fh       // 40px scaled from Figma height
-100.fws     // SizedBox(width: 100px scaled)
-40.fhs      // SizedBox(height: 40px scaled)
+VizeLayout(
+  builder: (context, info) {
+    return Column(
+      children: [
+        Text('Device: ${info.device}'),
+        Text('Orientation: ${info.orientation}'),
+        Text('Screen: ${info.vizeScreenSize}'),
+        Text('Widget: ${info.vizeWidgetSize}'),
+      ],
+    );
+  },
+)
 ```
 
-#### Shared Extensions
+### Custom Breakpoints
+
+Customize device detection breakpoints:
 
 ```dart
-18.ts       // Text size scaled
-12.r        // Radius scaled (always Figma-based)
+Vize.init(
+  context,
+  breakpoints: VizeBreakpoints(
+    mobile: 600,   // Mobile < 600px
+    tablet: 1024,   // Tablet 600-1024px, Desktop >= 1024px
+  ),
+);
 ```
+
+### Custom Figma Dimensions
+
+Match your Figma design dimensions:
+
+```dart
+Vize.init(
+  context,
+  figmaWidth: 390,
+  figmaHeight: 844,
+);
+```
+
+### User Font Scaling
+
+`Vize.init` accepts a `textScalar` parameter — a multiplier applied on top of
+the responsive text scale returned by `ts()`. Use it to honour a user's
+font-size preference (small / medium / large) so that every `.ts` call across
+the entire app scales accordingly without wrapping the widget tree in an extra
+`MediaQuery`.
+
+```dart
+// Pass the user's chosen scale (e.g. 0.85, 1.0, or 1.15) on every build.
+Vize.init(
+  context,
+  figmaWidth: 390,
+  figmaHeight: 844,
+  textScalar: userFontScale, // default: 1.0
+);
+```
+
+Because `Vize.init` is called inside `MaterialApp.builder` on every rebuild,
+the new scalar takes effect immediately whenever the preference changes - no
+hot-restart required.
 
 ### Core Methods
 
-| Method               | Description      | Example                    |
-| -------------------- | ---------------- | -------------------------- |
-| `Vize.init(context)` | Initialize Vize  | `Vize.init(context)`       |
-| `VizeLayout`         | Reactive builder | `VizeLayout(builder:...)`  |
-| `Vize.getInfo()`     | Get constraints  | `Vize.getInfo(context,..)` |
+| Method               | Description        | Example                   |
+| -------------------- | ------------------ | ------------------------- |
+| `Vize.init(context)` | Initialize Vize    | `Vize.init(context)`      |
+| `w(percent)`         | Width percentage   | `w(50)` - 50% width       |
+| `h(percent)`         | Height percentage  | `h(30)` - 30% height      |
+| `ts(size)`           | Scale text size    | `ts(16)` - scaled 16px    |
+| `r(value)`           | Scale radius       | `r(12)` - scaled 12px     |
+| `pa(value)`          | Padding all sides  | `pa(16)` - scaled padding |
+| `ps({h, v})`         | Symmetric padding  | `ps(h: 20, v: 10)`        |
+| `po({l, t, r, b})`   | Individual padding | `po(l: 10, t: 20)`        |
+| `ws(percent)`        | Width spacing      | `ws(5)` - 5% width        |
+| `hs(percent)`        | Height spacing     | `hs(2)` - 2% height       |
+| `sp([step])`         | Standard spacing   | `sp(2)` - 16px scaled     |
+
+### Vize.init Parameters
+
+| Parameter     | Type               | Default             | Description                                                                        |
+| ------------- | ------------------ | ------------------- | ---------------------------------------------------------------------------------- |
+| `context`     | `BuildContext`     | required            | Used to read `MediaQuery` screen dimensions                                        |
+| `figmaWidth`  | `double?`          | `390`               | The artboard width from your Figma design                                          |
+| `figmaHeight` | `double?`          | `844`               | The artboard height from your Figma design                                         |
+| `breakpoints` | `VizeBreakpoints?` | `VizeBreakpoints()` | Thresholds for mobile / tablet / desktop                                           |
+| `textScalar`  | `double`           | `1.0`               | Multiplier applied to all `ts()` values; use to honour a user font-size preference |
 
 ### Vize.I Methods
 
 Access these via `Vize.I`:
 
-| Method                    | Description             |
-| ------------------------- | ----------------------- |
-| `Vize.I.wp(percent)`      | Width percentage        |
-| `Vize.I.hp(percent)`      | Height percentage       |
-| `Vize.I.sw(value)`        | Scale width from Figma  |
-| `Vize.I.sh(value)`        | Scale height from Figma |
-| `Vize.I.ts(size)`         | Scale text size         |
-| `Vize.I.r(value)`         | Scale radius            |
-| `Vize.I.pa(value)`        | Padding all sides       |
-| `Vize.I.ps({h, v})`       | Symmetric padding       |
-| `Vize.I.po({l, t, r, b})` | Individual padding      |
-| `Vize.I.isMobile`         | Check if mobile         |
-| `Vize.I.isTablet`         | Check if tablet         |
-| `Vize.I.isDesktop`        | Check if desktop        |
-| `Vize.I.device`           | Get device type         |
+| Method                    | Description                             |
+| ------------------------- | --------------------------------------- |
+| `Vize.I.wp(percent)`      | Width percentage                        |
+| `Vize.I.hp(percent)`      | Height percentage                       |
+| `Vize.I.sw(value)`        | Scale width from Figma                  |
+| `Vize.I.sh(value)`        | Scale height from Figma                 |
+| `Vize.I.ts(size)`         | Scale text size (respects `textScalar`) |
+| `Vize.I.r(value)`         | Scale radius                            |
+| `Vize.I.pa(value)`        | Padding all sides                       |
+| `Vize.I.ps({h, v})`       | Symmetric padding                       |
+| `Vize.I.po({l, t, r, b})` | Individual padding                      |
+| `Vize.I.isMobile`         | Check if mobile                         |
+| `Vize.I.isTablet`         | Check if tablet                         |
+| `Vize.I.isDesktop`        | Check if desktop                        |
+| `Vize.I.device`           | Get device type                         |
+| `Vize.I.textScalar`       | Current text scale multiplier           |
 
 ### Device Flags
 
@@ -419,58 +415,71 @@ Access these via `Vize.I`:
 | `isTablet`  | True if tablet device  |
 | `isDesktop` | True if desktop device |
 
+### Extensions
+
+All extensions work on numbers:
+
+```dart
+50.w        // Width percentage
+30.h        // Height percentage
+18.ts       // Text size scaling (respects textScalar)
+12.r        // Radius scaling
+16.pa       // Padding all sides
+5.ws        // Width spacing
+2.hs        // Height spacing
+100.fws     // Scale width from Figma
+50.fhs      // Scale height from Figma
+```
+
 ### Widgets
 
 | Widget        | Description                        |
 | ------------- | ---------------------------------- |
 | `VizeBuilder` | Build different layouts per device |
+| `VizeWrapper` | Wrap with screen info              |
 | `VizeLayout`  | LayoutBuilder with VizeInfo        |
+
+### Models
+
+**VizeInfo** properties:
+
+- `orientation` - Current orientation
+- `device` - Device type (mobile/tablet/desktop)
+- `vizeScreen` - Full screen size
+- `vizeWidget` - Local widget size
+- `isPortrait` - Portrait orientation check
+- `isLandscape` - Landscape orientation check
+- `isMobile` - Mobile device check
+- `isTablet` - Tablet device check
+- `isDesktop` - Desktop device check
+
+## Default Breakpoints
+
+| Device  | Width Range | Default  |
+| ------- | ----------- | -------- |
+| Mobile  | < 600px     | < 600    |
+| Tablet  | 600-1024px  | 600-1024 |
+| Desktop | >= 1024px   | >= 1024  |
 
 ## Best Practices
 
-1. **Initialize Once**
+1. **Initialize Early**
 
    ```dart
-   Vize.init(context); // In MaterialApp builder
+   Vize.init(context); // In MaterialApp builder or root widget
    ```
 
-2. **Choose the Right Approach**
+2. **Use Helpers for Layouts:** Prefer percentage-based for flexible containers.
 
-   - Use **percentage-based** (`w`, `h`, `hs`, `ws`) for responsive layouts
-   - Use **Figma-based** (`fw`, `fh`, `fhs`, `fws`) for pixel-perfect designs
+3. **Use Figma Scaling for Components:** Ensures pixel-perfect UI.
 
-3. **Mix Approaches Wisely**
+4. **Combine Approaches:** Percentages for overall layout, Figma scaling for UI elements.
 
-   ```dart
-   // Good: Responsive container with fixed elements
-   Container(
-     width: w(90),      // Responsive width
-     height: 200.fh,    // Fixed height from Figma
-     child: ...
-   )
-   ```
+5. **Use Extensions:** Makes code much cleaner and readable.
 
-4. **Test on Multiple Devices**
-   - Small phones, tablets, and desktops
-   - Different orientations
+6. **Test on Multiple Devices:** Small phones, tablets, and desktops.
 
-## Migration from 1.0.x
-
-**No migration needed!** Version 1.0.2 is fully backward compatible:
-
-- All existing percentage-based code continues to work
-- New Figma-based functions are **additive only**
-- No breaking changes to existing APIs
-
-```dart
-// Your existing code still works:
-50.w    // Still 50% of screen width
-5.hs    // Still 5% height spacing
-
-// New features are available:
-375.fw  // New: 375px scaled from Figma
-40.fhs  // New: 40px height spacing from Figma
-```
+7. **Pass `textScalar` on every init:** Since `Vize.init` is called in `MaterialApp.builder`, pass your font-size preference on every build so the scalar stays in sync with the user's choice.
 
 ## Complete Example
 
@@ -503,13 +512,12 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        padding: 20.pa,  // padding
+        padding: 20.pa,
         child: Column(
           children: [
-            // Figma-based header
             Container(
-              width: 375.fw,      // 375px from Figma
-              height: 40.fh,      // 40px from Figma
+              width: 100.w,
+              height: 20.h,
               decoration: BoxDecoration(
                 color: Colors.blueAccent,
                 borderRadius: BorderRadius.circular(12.r),
@@ -521,10 +529,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-
-            40.fhs,  // Fixed spacing from Figma
-
-            // Responsive grid
+            2.hs,
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -544,8 +549,6 @@ class HomePage extends StatelessWidget {
                 child: Text('Item $i'),
               ),
             ),
-
-            2.hs,  // Responsive spacing at bottom
           ],
         ),
       ),
