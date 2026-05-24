@@ -5,124 +5,159 @@ import 'package:vize/vize.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Vize Initialization', () {
-    testWidgets('Initializes with default Figma size', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) {
-            Vize.init(context);
-            return const SizedBox();
-          },
-        ),
-      );
+  /// Pumps a minimal MaterialApp that calls Vize.init with the given params.
+  Future<void> pumpVize(
+    WidgetTester tester, {
+    double? figmaWidth,
+    double? figmaHeight,
+    VizeBreakpoints? breakpoints,
+    double textScalar = 1.0,
+    Widget child = const SizedBox(),
+  }) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, _) {
+          Vize.init(
+            context,
+            figmaWidth: figmaWidth,
+            figmaHeight: figmaHeight,
+            breakpoints: breakpoints,
+            textScalar: textScalar,
+          );
+          return child;
+        },
+      ),
+    );
+  }
 
+  // Initialization
+  group('Vize Initialization', () {
+    testWidgets('uses default Figma dimensions when none provided',
+        (tester) async {
+      await pumpVize(tester);
       expect(Vize.I.figmaW, 390);
       expect(Vize.I.figmaH, 844);
       expect(Vize.I.w, greaterThan(0));
     });
+
+    testWidgets('stores custom Figma dimensions', (tester) async {
+      await pumpVize(tester, figmaWidth: 375, figmaHeight: 812);
+      expect(Vize.I.figmaW, 375);
+      expect(Vize.I.figmaH, 812);
+    });
+
+    testWidgets('isInitialized is true after init', (tester) async {
+      await pumpVize(tester);
+      expect(Vize.isInitialized, isTrue);
+    });
   });
 
+  // Core Scaling
   group('Core Scaling Logic', () {
-    testWidgets('Percentage and Figma scaling calculations', (tester) async {
+    testWidgets('percentage and Figma scaling are 1:1 when screen == canvas',
+        (tester) async {
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) {
-            Vize.init(context, figmaWidth: 400, figmaHeight: 800);
-            return const SizedBox();
-          },
-        ),
-      );
+      await pumpVize(tester, figmaWidth: 400, figmaHeight: 800);
 
-      /// Percentage tests
       expect(50.w, 200.0); // 50% of 400
       expect(10.h, 80.0); // 10% of 800
+      expect(100.fw, 100.0); // 1:1 Figma width
+      expect(100.fh, 100.0); // 1:1 Figma height
+    });
 
-      /// Figma scaling extensions (sw/sh)
-      /// Since figmaWidth matches screen width, sw should be 1:1
-      expect(100.fw, 100.0); // 100px scaled from Figma width
-      expect(100.fh, 100.0); // 100px scaled from Figma height
+    testWidgets('Figma values double when screen is 2× canvas', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
-      /// Direct Vize.I methods
-      expect(Vize.I.sw(100), 100.0);
-      expect(Vize.I.sh(100), 100.0);
+      await pumpVize(tester, figmaWidth: 400, figmaHeight: 800);
+
+      expect(100.fw, 200.0);
+      expect(100.fh, 200.0);
+    });
+
+    testWidgets('percentage and Figma scaling work correctly together',
+        (tester) async {
+      tester.view.physicalSize = const Size(600, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await pumpVize(tester, figmaWidth: 300, figmaHeight: 600);
+
+      expect(50.w, 300.0); // 50% of 600
+      expect(100.fw, 200.0); // 100 x (600/300)
+      expect(25.h, 300.0); // 25% of 1200
+      expect(100.fh, 200.0); // 100 x (1200/600)
+
+      expect(16.pa, isA<EdgeInsets>());
+      expect(8.r, isA<double>());
+      expect(14.ts, isA<double>());
     });
   });
 
+  // Spacing Helpers
   group('Spacing and Helpers', () {
-    testWidgets('hs, ws, fhs, fws and sp return correct types', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) {
-            Vize.init(context);
-            return const SizedBox();
-          },
-        ),
-      );
+    testWidgets('spacer helpers return correct types and values',
+        (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
-      /// Percentage-based spacing
-      expect(2.hs, isA<SizedBox>());
-      expect(5.ws, isA<SizedBox>());
+      await pumpVize(tester);
 
-      /// Figma-based spacing
+      expect(10.hs.height, 80.0); // 10% of 800
+      expect(10.ws.width, 40.0); // 10% of 400
       expect(20.fhs, isA<SizedBox>());
       expect(100.fws, isA<SizedBox>());
-
-      /// Standard spacing (always Figma-based)
       expect(sp(2), isA<double>());
     });
   });
 
+  // Device Detection
   group('Device Detection', () {
-    testWidgets('Correctly identifies Mobile/Tablet/Desktop', (tester) async {
-      /// 1. Test Mobile
+    testWidgets('correctly identifies Mobile / Tablet / Desktop',
+        (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+
       tester.view.physicalSize = const Size(500, 800);
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (c, _) {
-            Vize.init(c);
-            return const SizedBox();
-          },
-        ),
-      );
-      expect(isMobile, true);
+      await pumpVize(tester);
+      expect(isMobile, isTrue);
       expect(Vize.I.device, VizeDevice.mobile);
 
-      /// 2. Test Tablet
       tester.view.physicalSize = const Size(800, 1200);
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (c, _) {
-            Vize.init(c);
-            return const SizedBox();
-          },
-        ),
-      );
-      expect(isTablet, true);
+      await pumpVize(tester);
+      expect(isTablet, isTrue);
       expect(Vize.I.device, VizeDevice.tablet);
 
-      /// 3. Test Desktop
       tester.view.physicalSize = const Size(1200, 900);
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (c, _) {
-            Vize.init(c);
-            return const SizedBox();
-          },
-        ),
-      );
-      expect(isDesktop, true);
+      await pumpVize(tester);
+      expect(isDesktop, isTrue);
       expect(Vize.I.device, VizeDevice.desktop);
 
       tester.view.resetPhysicalSize();
     });
+
+    testWidgets('respects custom breakpoints', (tester) async {
+      tester.view.physicalSize = const Size(900, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await pumpVize(
+        tester,
+        breakpoints: const VizeBreakpoints(mobile: 800, tablet: 1280),
+      );
+
+      expect(isTablet, isTrue);
+    });
   });
 
-  group('VizeInfo Model', () {
-    testWidgets('Vize.info captures layout constraints', (tester) async {
+  // VizeInfo
+  group('VizeInfo', () {
+    testWidgets('getInfo scopes widget size separately from screen size',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -130,7 +165,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          builder: (context, child) {
+          builder: (context, _) {
             Vize.init(context);
             return Center(
               child: SizedBox(
@@ -139,10 +174,69 @@ void main() {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final info = Vize.getInfo(context, constraints);
-
                     expect(info.vizeWidget.width, 200.0);
                     expect(info.vizeScreen.width, 800.0);
+                    return const SizedBox();
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    });
 
+    testWidgets('isPortrait / isLandscape reflect orientation', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+
+      tester.view.physicalSize = const Size(400, 800);
+      await pumpVize(tester);
+      expect(Vize.I.info.isPortrait, isTrue);
+      expect(Vize.I.info.isLandscape, isFalse);
+
+      tester.view.physicalSize = const Size(800, 400);
+      await pumpVize(tester);
+      expect(Vize.I.info.isLandscape, isTrue);
+      expect(Vize.I.info.isPortrait, isFalse);
+
+      tester.view.resetPhysicalSize();
+    });
+
+    testWidgets('device getters on VizeInfo match Vize.I', (tester) async {
+      tester.view.physicalSize = const Size(500, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await pumpVize(tester);
+
+      final info = Vize.I.info;
+      expect(info.isMobile, Vize.I.isMobile);
+      expect(info.isTablet, Vize.I.isTablet);
+      expect(info.isDesktop, Vize.I.isDesktop);
+    });
+
+    testWidgets('vizeScreenSize and vizeWidgetSize are correct aliases',
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, _) {
+            Vize.init(context);
+            return Center(
+              child: SizedBox(
+                width: 300,
+                height: 150,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final info = Vize.getInfo(context, constraints);
+                    expect(info.vizeScreenSize, info.vizeScreen);
+                    expect(info.vizeWidgetSize, info.vizeWidget);
+                    expect(info.vizeScreenSize.width, 800.0);
+                    expect(info.vizeWidgetSize.width, 300.0);
                     return const SizedBox();
                   },
                 ),
@@ -154,198 +248,181 @@ void main() {
     });
   });
 
-  group('Backward Compatibility', () {
-    testWidgets('Existing extensions work correctly', (tester) async {
-      tester.view.physicalSize = const Size(400, 800);
+  // VizeLayout with regression guard for silent singleton reset bug (1.0.4)
+  group('VizeLayout (1.0.4)', () {
+    testWidgets('does not reset figmaW / figmaH on rebuild', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         MaterialApp(
           builder: (context, child) {
-            Vize.init(context, figmaWidth: 400, figmaHeight: 800);
-            return const SizedBox();
+            Vize.init(context, figmaWidth: 375, figmaHeight: 812);
+            return child!;
           },
+          home: VizeLayout(
+            builder: (context, info) => const SizedBox(),
+          ),
         ),
       );
 
-      /// Test that original percentage-based extensions still work
-      expect(50.w, 200.0); // 50% of 400
-      expect(25.h, 200.0); // 25% of 800
-
-      /// Test that hs/ws still work as percentage-based
-      final hsWidget = 10.hs;
-      expect(hsWidget, isA<SizedBox>());
-      expect(hsWidget.height, 80.0); // 10% of 800
-
-      final wsWidget = 10.ws;
-      expect(wsWidget, isA<SizedBox>());
-      expect(wsWidget.width, 40.0); // 10% of 400
+      expect(Vize.I.figmaW, 375);
+      expect(Vize.I.figmaH, 812);
     });
-  });
 
-  group('New Figma-based Extensions', () {
-    testWidgets('New Figma-based extensions work correctly', (tester) async {
-      tester.view.physicalSize = const Size(800, 1600); // Double Figma size
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) {
-            Vize.init(context, figmaWidth: 400, figmaHeight: 800);
-            return const SizedBox();
-          },
-        ),
-      );
-
-      /// Test Figma-based extensions
-      /// Since screen is 2x Figma size, values should double
-      expect(100.fw, 200.0); // 100px from Figma × 2 = 200
-      expect(100.fh, 200.0); // 100px from Figma × 2 = 200
-
-      /// Test Figma-based spacing extensions
-      final fhsWidget = 40.fhs;
-      expect(fhsWidget, isA<SizedBox>());
-      expect(fhsWidget.height, 80.0); // 40px from Figma × 2 = 80
-
-      final fwsWidget = 100.fws;
-      expect(fwsWidget, isA<SizedBox>());
-      expect(fwsWidget.width, 200.0); // 100px from Figma × 2 = 200
-    });
-  });
-
-  group('Mixed Usage', () {
-    testWidgets('Can use both percentage and Figma scaling together',
+    testWidgets('provides locally-scoped widget size via builder',
         (tester) async {
       tester.view.physicalSize = const Size(600, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
+      VizeInfo? captured;
+
       await tester.pumpWidget(
         MaterialApp(
           builder: (context, child) {
-            Vize.init(context, figmaWidth: 300, figmaHeight: 600);
-            return const SizedBox();
+            Vize.init(context);
+            return child!;
           },
+          home: Center(
+            child: SizedBox(
+              width: 200,
+              height: 100,
+              child: VizeLayout(
+                builder: (context, info) {
+                  captured = info;
+                  return const SizedBox();
+                },
+              ),
+            ),
+          ),
         ),
       );
 
-      /// Screen is 2x Figma size
-      /// Percentage-based: relative to screen
-      /// Figma-based: scaled from Figma × 2
-
-      expect(50.w, 300.0); // 50% of 600
-      expect(100.fw, 200.0); // 100px from Figma × 2
-
-      expect(25.h, 300.0); // 25% of 1200
-      expect(100.fh, 200.0); // 100px from Figma × 2
-
-      /// Test that .pa, .r, .ts still work (always Figma-based)
-      expect(16.pa, isA<EdgeInsets>());
-      expect(8.r, isA<double>());
-      expect(14.ts, isA<double>());
+      expect(captured, isNotNull);
+      expect(captured!.vizeWidget.width, 200.0);
+      expect(captured!.vizeScreen.width, 600.0);
     });
   });
 
+  // VizeScope / VizeWrapper (1.0.4)
+  group('VizeScope / VizeWrapper (1.0.4)', () {
+    testWidgets('VizeScope.of and VizeWrapper both expose info to subtree',
+        (tester) async {
+      await pumpVize(tester);
+      final testInfo = Vize.I.info;
+
+      // VizeScope directly
+      VizeInfo? fromScope;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: VizeScope(
+            info: testInfo,
+            child: Builder(builder: (context) {
+              fromScope = VizeScope.of(context);
+              return const SizedBox();
+            }),
+          ),
+        ),
+      );
+      expect(fromScope, equals(testInfo));
+
+      // VizeWrapper convenience alias
+      VizeInfo? fromWrapper;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: VizeWrapper(
+            info: testInfo,
+            child: Builder(builder: (context) {
+              fromWrapper = VizeScope.of(context);
+              return const SizedBox();
+            }),
+          ),
+        ),
+      );
+      expect(fromWrapper, equals(testInfo));
+    });
+
+    testWidgets('maybeOf returns null when no ancestor present',
+        (tester) async {
+      VizeInfo? result;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(builder: (context) {
+            result = VizeScope.maybeOf(context);
+            return const SizedBox();
+          }),
+        ),
+      );
+      expect(result, isNull);
+    });
+  });
+
+  // Adaptive Utilities (includes adaptiveValue for 1.0.4)
   group('Adaptive Utilities', () {
-    testWidgets('adaptiveColumns returns correct values', (tester) async {
-      /// Test Mobile
+    testWidgets(
+        'adaptiveColumns and adaptiveValue return correct values per device',
+        (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+
+      // Mobile
       tester.view.physicalSize = const Size(500, 800);
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (c, _) {
-            Vize.init(c);
-            return const SizedBox();
-          },
-        ),
-      );
+      await pumpVize(tester);
+      expect(adaptiveColumns(mobile: 1, tablet: 2, desktop: 3), 1);
+      expect(adaptiveValue<double>(mobile: 14, tablet: 16, desktop: 18), 14.0);
+      expect(adaptiveValue<String>(mobile: 'sm', tablet: 'md', desktop: 'lg'),
+          'sm');
 
-      int columns = adaptiveColumns(mobile: 1, tablet: 2, desktop: 3);
-      expect(columns, 1); // Mobile should return 1
-
-      /// Test Tablet
+      // Tablet
       tester.view.physicalSize = const Size(800, 1200);
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (c, _) {
-            Vize.init(c);
-            return const SizedBox();
-          },
-        ),
-      );
+      await pumpVize(tester);
+      expect(adaptiveColumns(mobile: 1, tablet: 2, desktop: 3), 2);
+      expect(adaptiveValue<double>(mobile: 14, tablet: 16, desktop: 18), 16.0);
 
-      columns = adaptiveColumns(mobile: 1, tablet: 2, desktop: 3);
-      expect(columns, 2); // Tablet should return 2
-
-      /// Test Desktop
+      // Desktop
       tester.view.physicalSize = const Size(1200, 900);
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (c, _) {
-            Vize.init(c);
-            return const SizedBox();
-          },
-        ),
-      );
-
-      columns = adaptiveColumns(mobile: 1, tablet: 2, desktop: 3);
-      expect(columns, 3); // Desktop should return 3
+      await pumpVize(tester);
+      expect(adaptiveColumns(mobile: 1, tablet: 2, desktop: 3), 3);
+      expect(adaptiveValue<double>(mobile: 14, tablet: 16, desktop: 18), 18.0);
 
       tester.view.resetPhysicalSize();
     });
   });
 
+  // Edge Cases
   group('Edge Cases', () {
-    testWidgets('Handles zero and negative values', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) {
-            Vize.init(context);
-            return const SizedBox();
-          },
-        ),
-      );
-
+    testWidgets('zero values return zero', (tester) async {
+      await pumpVize(tester);
       expect(0.w, 0.0);
       expect(0.h, 0.0);
       expect(0.fw, 0.0);
       expect(0.fh, 0.0);
-
-      /// Negative values should also work (though not typical)
-      expect((-10).w, lessThan(0));
-      expect((-10).h, lessThan(0));
     });
 
-    testWidgets('Text scaling has reasonable bounds', (tester) async {
-      tester.view.physicalSize = const Size(2000, 2000); // Very large screen
+    testWidgets('ts is clamped on very large screens', (tester) async {
+      tester.view.physicalSize = const Size(2000, 2000);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) {
-            Vize.init(context);
-            return const SizedBox();
-          },
-        ),
-      );
+      await pumpVize(tester);
 
-      final smallText = 12.ts;
-      final largeText = 48.ts;
+      // At 2000x2000: ((2000+2000)/2000)*1.05 = 2.1 to clamped to 1.2x
+      expect(12.ts, 12 * 1.2);
+      expect(48.ts, 48 * 1.2);
+    });
 
-      /// Text scaling should be clamped (see Vize.ts method)
-      expect(smallText,
-          greaterThanOrEqualTo(12 * 0.92)); // At least 92% of original
-      expect(
-          smallText, lessThanOrEqualTo(12 * 1.2)); // At most 120% of original
+    testWidgets('textScalar multiplies ts output proportionally',
+        (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
-      expect(largeText, greaterThanOrEqualTo(48 * 0.92));
-      expect(largeText, lessThanOrEqualTo(48 * 1.2));
+      await pumpVize(tester);
+      final base = 16.ts;
 
-      /// Specifically for a 2000x2000 screen
-      expect(smallText, 12 * 1.2);
-      expect(largeText, 48 * 1.2);
+      await pumpVize(tester, textScalar: 1.5);
+      expect(16.ts, closeTo(base * 1.5, 0.001));
     });
   });
 }

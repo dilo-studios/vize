@@ -5,11 +5,25 @@ import 'package:vize/vize.dart';
 ///
 /// This class acts as a singleton ([Vize.I]) that holds the current screen
 /// dimensions and provides scaling utilities to match Figma designs.
+///
+/// Always call [Vize.init] inside [MaterialApp.builder] before accessing [I].
 class Vize {
+  static Vize? _instance;
+
   /// The singleton instance of [Vize].
   ///
-  /// Ensure [init] is called before accessing this instance.
-  static late Vize I;
+  /// Throws an [AssertionError] if accessed before [init] has been called.
+  static Vize get I {
+    assert(
+      _instance != null,
+      'Vize.init() must be called before using Vize. '
+      'Place it inside MaterialApp.builder.',
+    );
+    return _instance!;
+  }
+
+  /// Returns `true` once [init] has been called at least once.
+  static bool get isInitialized => _instance != null;
 
   /// The current screen width in logical pixels.
   final double w;
@@ -36,7 +50,7 @@ class Vize {
   ///
   /// Defaults to [1.0] (no adjustment). Pass a value from your font-size
   /// preference (e.g. 0.85 / 1.0 / 1.15) and every [ts] call across the
-  /// entire app will scale accordingly — no extra [MediaQuery] wrapper needed.
+  /// entire app will scale accordingly with no extra [MediaQuery] wrapper needed.
   final double textScalar;
 
   Vize._({
@@ -52,8 +66,18 @@ class Vize {
 
   /// Initializes the [Vize] singleton with screen and design dimensions.
   ///
-  /// Call once inside [MaterialApp.builder] so it re-initialises on every
-  /// rebuild, picking up the latest [textScalar] from your font-size provider.
+  /// Call inside [MaterialApp.builder] so it re-initialises on every rebuild,
+  /// picking up orientation changes, window resizes, and the latest
+  /// [textScalar] from your font-size provider.
+  ///
+  /// ```dart
+  /// MaterialApp(
+  ///   builder: (context, child) {
+  ///     Vize.init(context, figmaWidth: 390, figmaHeight: 844);
+  ///     return child!;
+  ///   },
+  /// )
+  /// ```
   static void init(
     BuildContext context, {
     double? figmaWidth,
@@ -65,7 +89,6 @@ class Vize {
     final currentBreakpoints = breakpoints ?? const VizeBreakpoints();
     final currentW = mq.size.width;
 
-    // Logic for initial device detection
     VizeDevice currentDevice;
     if (currentW >= currentBreakpoints.tablet) {
       currentDevice = VizeDevice.desktop;
@@ -75,7 +98,7 @@ class Vize {
       currentDevice = VizeDevice.mobile;
     }
 
-    I = Vize._(
+    _instance = Vize._(
       w: currentW,
       h: mq.size.height,
       pixelRatio: mq.devicePixelRatio,
@@ -117,27 +140,33 @@ class Vize {
   /// Calculates a height value as a percentage of the screen height (0-100).
   double hp(double percent) => h * (percent / 100);
 
-  /// Scales a value based on the design width provided in Figma.
+  /// Scales a value proportionally to the current screen width relative to
+  /// the Figma design width.
   double sw(double value) => w * (value / figmaW);
 
-  /// Scales a value based on the design height provided in Figma.
+  /// Scales a value proportionally to the current screen height relative to
+  /// the Figma design height.
   double sh(double value) => h * (value / figmaH);
 
   /// Returns a responsive text size clamped to a safe range, then multiplied
   /// by [textScalar] to honour the user's font-size preference.
+  ///
+  /// The base scale uses the average of screen width and height against a
+  /// 2000px reference, with a 1.05 upward bias and a ±[size * 0.08 / 0.2]
+  /// clamp to prevent extreme values on very small or very large screens.
   double ts(double size) {
     final scaled = size * ((w + h) / 2000) * 1.05;
     final clamped = scaled.clamp(size * 0.92, size * 1.2);
     return clamped * textScalar;
   }
 
-  /// Returns a scaled radius value with a safety clamp.
+  /// Returns a scaled radius value clamped to ±20% of the original.
   double r(double value) {
     final scaled = value * ((w + h) / 2000);
     return scaled.clamp(value * 0.8, value * 1.2);
   }
 
-  /// Returns scaled [EdgeInsets.all] based on the design width.
+  /// Returns scaled [EdgeInsets.all] based on the Figma design width.
   EdgeInsets pa(double value) => EdgeInsets.all(sw(value));
 
   /// Returns scaled [EdgeInsets.symmetric] for horizontal and vertical.
@@ -148,12 +177,12 @@ class Vize {
   EdgeInsets po({double l = 0, double t = 0, double r = 0, double b = 0}) =>
       EdgeInsets.fromLTRB(sw(l), sh(t), sw(r), sh(b));
 
-  /// Generates a fresh [VizeInfo] object based on specific [BoxConstraints].
+  /// Generates a [VizeInfo] scoped to specific [BoxConstraints].
   ///
-  /// Useful for local widget responsiveness inside a [LayoutBuilder].
+  /// Used internally by [VizeLayout] so local rebuilds never mutate the global
+  /// singleton. Also useful inside a manual [LayoutBuilder].
   static VizeInfo getInfo(BuildContext context, BoxConstraints constraints) {
     final mq = MediaQuery.of(context);
-
     return VizeInfo(
       orientation: mq.orientation,
       device: I.device,
