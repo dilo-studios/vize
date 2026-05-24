@@ -418,7 +418,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      await pumpVize(tester, textScalar: 1.1);
+      await pumpVize(tester);
       final base = 16.ts;
 
       await pumpVize(tester, textScalar: 1.5);
