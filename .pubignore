@@ -3,3 +3,4 @@
 check.ps1
 check.sh
 .github/
+build/
