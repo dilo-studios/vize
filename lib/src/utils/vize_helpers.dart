@@ -103,10 +103,10 @@ int adaptiveColumns({int mobile = 2, int tablet = 4, int desktop = 6}) {
 /// ```
 T adaptiveValue<T>({
   required T mobile,
-  required T tablet,
-  required T desktop,
+  T? tablet,
+  T? desktop,
 }) {
-  if (isDesktop) return desktop;
-  if (isTablet) return tablet;
+  if (isDesktop) return desktop ?? tablet ?? mobile;
+  if (isTablet) return tablet ?? mobile;
   return mobile;
 }

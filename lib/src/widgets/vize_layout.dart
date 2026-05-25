@@ -37,7 +37,10 @@ class VizeLayout extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final info = Vize.getInfo(context, constraints);
-        return builder(context, info);
+        return VizeScope(
+          info: info,
+          child: builder(context, info),
+        );
       },
     );
   }

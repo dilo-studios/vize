@@ -8,20 +8,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and
 
 ### Fixed
 
-- **`VizeLayout` silent config reset**: `VizeLayout` previously called `Vize.init(context)` with no parameters on every `LayoutBuilder` rebuild, silently resetting `figmaWidth`, `figmaHeight`, `textScalar`, and `breakpoints` back to their defaults. It now uses `Vize.getInfo(context, constraints)` which already existed for this purpose so global config is never touched during local rebuilds.
-- **`VizeWrapper` no-op build**: `VizeWrapper` accepted a `VizeInfo` parameter but returned only `child`, never surfacing the info to the widget tree. It is now a proper `InheritedWidget` (`VizeScope`) so subtrees can look up the nearest `VizeInfo` via `VizeScope.of(context)`. The `VizeWrapper` name is retained as a convenience constructor alias for backward compatibility.
-- **`adaptiveValue<T>` missing implementation**: `adaptiveValue` was documented and referenced in the README since 1.0.0 but was never implemented. It is now a typed generic helper in `vize_helpers.dart`.
-- **`VizeInfo` missing convenience getters**: The README documented `isPortrait`, `isLandscape`, `isMobile`, `isTablet`, and `isDesktop` as `VizeInfo` properties, but they did not exist on the model. All five getters have been added.
-- **Renamed `VizeInfo` size properties**: `vizeScreen` and `vizeWidget` are now also accessible as `vizeScreenSize` and `vizeWidgetSize` respectively (original names kept for backward compatibility) to match the README examples.
+- **`VizeLayout` silent config reset**: Now uses `Vize.getInfo(context, constraints)` instead of calling `Vize.init(context)` on every rebuild, so global config is never touched during local constraint changes.
+- **`VizeWrapper` no-op build**: Was returning `child` without surfacing `VizeInfo` to the tree. Replaced with a proper `InheritedWidget` (`VizeScope`); `VizeWrapper` kept as a backward-compatible alias.
+- **`adaptiveValue<T>` missing implementation**: Documented since 1.0.0 but never implemented. Now a typed generic helper.
+- **`VizeInfo` missing convenience getters**: `isPortrait`, `isLandscape`, `isMobile`, `isTablet`, and `isDesktop` were documented but absent from the model. All five added.
+- **`VizeInfo` size property aliases**: `vizeScreenSize` and `vizeWidgetSize` added as aliases for `vizeScreen` and `vizeWidget` (originals kept).
 
 ### Added
 
-- **Initialisation guard**: Accessing `Vize.I` before `Vize.init()` is called now throws an `AssertionError` with a descriptive message (`"Vize.init() must be called before using Vize. Place it inside MaterialApp.builder."`) instead of a cryptic `LateInitializationError`.
-- **`Vize.isInitialized` flag**: A static `bool` getter that returns `true` once `Vize.init()` has been called. Useful for conditional checks in tests and splash screens.
+- **Initialisation guard**: `Vize.I` now throws a descriptive `AssertionError` if accessed before `Vize.init()` instead of a cryptic `LateInitializationError`.
+- **`Vize.isInitialized`**: Static `bool` getter `true` once `Vize.init()` has been called. Useful in tests and splash screens.
+- **`VizeInfo` equality**: `==` and `hashCode` implemented so `VizeScope.updateShouldNotify` skips unnecessary rebuilds.
+- **`VizeInfo.toString()`**: Readable debug output on `VizeInfo(device: …, orientation: …, screen: …, widget: …)`.
 
 ### Improved
 
-- **`sp()` documentation**: Added an inline doc comment clarifying that `sp()` scales an 8px-grid step relative to your Figma canvas width (via `sw()`), so values on devices wider than the canvas will be proportionally larger by design.
+- **Singleton structure**: `_instance` is now `static Vize?` guarded by an assertion rather than `late static`.
+- **`sp()` docs**: Clarified that `sp()` scales relative to Figma canvas width, so values grow proportionally on wider devices by design.
 
 ---
 

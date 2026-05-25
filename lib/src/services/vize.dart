@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:vize/vize.dart';
 
@@ -119,18 +120,18 @@ class Vize {
   VizeInfo get info => _info;
 
   /// Whether the device is classified as mobile based on [breakpoints].
-  bool get isMobile => w < breakpoints.mobile;
+  bool get isMobile => device == VizeDevice.mobile;
 
   /// Whether the device is classified as a tablet based on [breakpoints].
-  bool get isTablet => w >= breakpoints.mobile && w < breakpoints.tablet;
+  bool get isTablet => device == VizeDevice.tablet;
 
   /// Whether the device is classified as a desktop based on [breakpoints].
-  bool get isDesktop => w >= breakpoints.tablet;
+  bool get isDesktop => device == VizeDevice.desktop;
 
   /// Returns the current [VizeDevice] type enum.
   VizeDevice get device {
-    if (isDesktop) return VizeDevice.desktop;
-    if (isTablet) return VizeDevice.tablet;
+    if (w >= breakpoints.tablet) return VizeDevice.desktop;
+    if (w >= breakpoints.mobile) return VizeDevice.tablet;
     return VizeDevice.mobile;
   }
 
@@ -151,18 +152,19 @@ class Vize {
   /// Returns a responsive text size clamped to a safe range, then multiplied
   /// by [textScalar] to honour the user's font-size preference.
   ///
-  /// The base scale uses the average of screen width and height against a
-  /// 2000px reference, with a 1.05 upward bias and a ±[size * 0.08 / 0.2]
+  /// The base scale uses the average of screen width and height against the
+  /// design reference, with a 1.05 upward bias and a ±[size * 0.08 / 0.2]
   /// clamp to prevent extreme values on very small or very large screens.
   double ts(double size) {
-    final scaled = size * ((w + h) / 2000) * 1.05;
+    final scaled = size * math.sqrt((w * h) / (figmaW * figmaH)) * 1.05;
     final clamped = scaled.clamp(size * 0.92, size * 1.2);
     return clamped * textScalar;
   }
 
-  /// Returns a scaled radius value clamped to ±20% of the original.
+  /// Returns a scaled radius value based on design dimensions,
+  /// clamped to safely stay within ±20% of the original target size.
   double r(double value) {
-    final scaled = value * ((w + h) / 2000);
+    final scaled = value * math.sqrt((w * h) / (figmaW * figmaH));
     return scaled.clamp(value * 0.8, value * 1.2);
   }
 
@@ -183,11 +185,17 @@ class Vize {
   /// singleton. Also useful inside a manual [LayoutBuilder].
   static VizeInfo getInfo(BuildContext context, BoxConstraints constraints) {
     final mq = MediaQuery.of(context);
+    // Inside Vize.getInfo
+    final double finalWidth =
+        constraints.maxWidth.isInfinite ? mq.size.width : constraints.maxWidth;
+    final double finalHeight = constraints.maxHeight.isInfinite
+        ? mq.size.height
+        : constraints.maxHeight;
     return VizeInfo(
       orientation: mq.orientation,
       device: I.device,
       vizeScreen: mq.size,
-      vizeWidget: Size(constraints.maxWidth, constraints.maxHeight),
+      vizeWidget: Size(finalWidth, finalHeight),
     );
   }
 }

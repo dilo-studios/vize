@@ -290,25 +290,51 @@ Vize.init(
 
 ### Widgets
 
-| Widget        | Description                                                 |
-| ------------- | ----------------------------------------------------------- |
-| `VizeBuilder` | Declarative device-switching builder                        |
-| `VizeLayout`  | `LayoutBuilder` wrapper that provides `VizeInfo`            |
-| `VizeWrapper` | `InheritedWidget` exposes `VizeInfo` to the subtree         |
+| Widget        | Description                                                        |
+| ------------- | ------------------------------------------------------------------ |
+| `VizeBuilder` | Declarative device-switching builder (reads global `Vize.I` only)  |
+| `VizeLayout`  | `LayoutBuilder` wrapper that provides local `VizeInfo`             |
+| `VizeScope`   | `InheritedWidget` that exposes `VizeInfo` to its subtree           |
+| `VizeWrapper` | Convenience alias for `VizeScope` (backward-compatible)            |
+
+#### `VizeScope`
+
+`VizeScope` is an `InheritedWidget` inserted automatically by `VizeLayout`. It lets any descendant read the nearest `VizeInfo` without prop-drilling:
+
+```dart
+// Reading info anywhere below a VizeLayout (or a manual VizeScope)
+final info = VizeScope.of(context);        // throws if no ancestor found
+final info = VizeScope.maybeOf(context);   // returns null if not found
+
+if (info.isPortrait) { ... }
+```
+
+You can also place a `VizeScope` manually around a subtree:
+
+```dart
+VizeScope(
+  info: Vize.I.info,
+  child: MySubtree(),
+)
+```
+
+> **`VizeBuilder` note:** `VizeBuilder` reads the global `Vize.I` singleton directly and does **not** respond to a `VizeScope` ancestor override. Use `VizeLayout` when you need scope-aware device info.
 
 ### `VizeInfo` properties
 
-| Property        | Type          | Description                    |
-| --------------- | ------------- | ------------------------------ |
-| `device`        | `VizeDevice`  | `mobile` / `tablet` / `desktop`|
-| `orientation`   | `Orientation` | `portrait` or `landscape`      |
-| `isPortrait`    | `bool`        | Orientation check              |
-| `isLandscape`   | `bool`        | Orientation check              |
-| `isMobile`      | `bool`        | Device check                   |
-| `isTablet`      | `bool`        | Device check                   |
-| `isDesktop`     | `bool`        | Device check                   |
-| `vizeScreen`    | `Size`        | Full screen size               |
-| `vizeWidget`    | `Size`        | Local widget constraints size  |
+| Property          | Type          | Description                             |
+| ----------------- | ------------- | --------------------------------------- |
+| `device`          | `VizeDevice`  | `mobile` / `tablet` / `desktop`         |
+| `orientation`     | `Orientation` | `portrait` or `landscape`               |
+| `isPortrait`      | `bool`        | Orientation check                       |
+| `isLandscape`     | `bool`        | Orientation check                       |
+| `isMobile`        | `bool`        | Device check                            |
+| `isTablet`        | `bool`        | Device check                            |
+| `isDesktop`       | `bool`        | Device check                            |
+| `vizeScreen`      | `Size`        | Full screen size                        |
+| `vizeScreenSize`  | `Size`        | Alias for `vizeScreen`                  |
+| `vizeWidget`      | `Size`        | Local widget constraints size           |
+| `vizeWidgetSize`  | `Size`        | Alias for `vizeWidget`                  |
 
 ---
 
@@ -383,9 +409,17 @@ class HomePage extends StatelessWidget {
 
 1. **Always init in `MaterialApp.builder`** and never in a `build` method above `MaterialApp`.
 2. **Percentages for layout, Figma values for components** as percentages flex naturally; Figma values replicate your design exactly.
-3. **Pass `textScalar` on every init** since `builder` rebuilds on every change, the scalar stays live.
+3. **Wire `textScalar` from a preference provider** if your app supports user font-size preferences. Because `MaterialApp.builder` rebuilds on every change, the scalar stays live automatically. Omitting it is also valid since it defaults to `1.0`.
 4. **Use `VizeLayout` for widget-local responsiveness** and it won't disrupt your global config.
 5. **Test on multiple form factors** like small phones, tablets, and desktop windows.
+6. **Reset `Vize` state between widget tests** by calling `Vize.init` in `setUp`. There is no `Vize.reset()` so re-initialising is the intended pattern:
+
+```dart
+setUp(() {
+  // Provide a minimal fake context or use a testable wrapper
+  Vize.init(context, figmaWidth: 390, figmaHeight: 844);
+});
+```
 
 ---
 
